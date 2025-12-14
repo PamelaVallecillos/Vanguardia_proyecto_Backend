@@ -1,5 +1,13 @@
 package com.example.dat.doctor.service;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import com.example.dat.doctor.dto.DoctorDTO;
 import com.example.dat.doctor.entity.Doctor;
 import com.example.dat.doctor.repo.DoctorRepo;
@@ -8,15 +16,9 @@ import com.example.dat.exceptions.NotFoundException;
 import com.example.dat.res.Response;
 import com.example.dat.users.entity.User;
 import com.example.dat.users.service.UserService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -36,11 +38,11 @@ public class DoctorServiceImpl implements DoctorService{
         User user = userService.getCurrentUser();
 
         Doctor doctor = doctorRepo.findByUser(user)
-                .orElseThrow(() -> new NotFoundException("Doctor profile not found."));
+                .orElseThrow(() -> new NotFoundException("No se encontró perfil del Doctor."));
 
         return Response.<DoctorDTO>builder()
                 .statusCode(200)
-                .message("Doctor profile retrieved successfully.")
+                .message("El registro del Doctor ha sido obtenido correctamente.")
                 .data(modelMapper.map(doctor, DoctorDTO.class))
                 .build();
     }
@@ -51,7 +53,7 @@ public class DoctorServiceImpl implements DoctorService{
         User currentUser = userService.getCurrentUser();
 
         Doctor doctor = doctorRepo.findByUser(currentUser)
-                .orElseThrow(() -> new NotFoundException("Doctor profile not found."));
+                .orElseThrow(() -> new NotFoundException("No se encontró perfil del Doctor."));
 
         // Basic fields (firstName, lastName)
         if (StringUtils.hasText(doctorDTO.getFirstName())) {
@@ -64,11 +66,11 @@ public class DoctorServiceImpl implements DoctorService{
         Optional.ofNullable(doctorDTO.getSpecialization()).ifPresent(doctor::setSpecialization);
 
         doctorRepo.save(doctor);
-        log.info("Doctor profile updated ");
+        log.info("Perfil del Doctor actualizado con éxito.");
 
         return Response.builder()
                 .statusCode(200)
-                .message("Doctor profile updated successfully.")
+                .message("Perfil del Doctor actualizado con éxito.")
                 .build();
 
     }
@@ -84,7 +86,7 @@ public class DoctorServiceImpl implements DoctorService{
 
         return Response.<List<DoctorDTO>>builder()
                 .statusCode(200)
-                .message("All doctors retrieved successfully.")
+                .message("Todos los registros de los doctores han sido obtenidos correctamente.")
                 .data(doctorDTOS)
                 .build();
 
@@ -94,11 +96,11 @@ public class DoctorServiceImpl implements DoctorService{
     public Response<DoctorDTO> getDoctorById(Long doctorId) {
 
         Doctor doctor = doctorRepo.findById(doctorId)
-                .orElseThrow(() -> new NotFoundException("Doctor not found"));
+                .orElseThrow(() -> new NotFoundException("Doctor no encontrado."));
 
         return Response.<DoctorDTO>builder()
                 .statusCode(200)
-                .message("Doctor retrieved successfully.")
+                .message("El registro del Doctor ha sido obtenido correctamente.")
                 .data(modelMapper.map(doctor, DoctorDTO.class))
                 .build();
     }
@@ -114,8 +116,8 @@ public class DoctorServiceImpl implements DoctorService{
 
 
         String message = doctors.isEmpty() ?
-                "No doctors found for specialization: " + specialization.name() :
-                "Doctors retrieved successfully for specialization: " + specialization.name();
+                "No se encontraron doctores para la especialización: " + specialization.name() :
+                "Doctores obtenidos correctamente para la especialización: " + specialization.name();
 
         return Response.<List<DoctorDTO>>builder()
                 .statusCode(200)
@@ -132,7 +134,7 @@ public class DoctorServiceImpl implements DoctorService{
 
         return Response.<List<Specialization>>builder()
                 .statusCode(200)
-                .message("Specializations retrieved successfully")
+                .message("Especializaciones obtenidas correctamente.")
                 .data(specializations)
                 .build();
     }

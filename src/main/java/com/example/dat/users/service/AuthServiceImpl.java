@@ -153,11 +153,14 @@ public class AuthServiceImpl implements AuthService{
         String password = loginRequest.getPassword();
 
 
-        User user = userRepo.findByEmail(email).orElseThrow(() -> new NotFoundException("Email Not Found"));
+                // For security, do not reveal whether email or password was incorrect.
+                // Always return a generic "invalid credentials" error.
+                User user = userRepo.findByEmail(email)
+                                .orElseThrow(() -> new BadRequestException("Credenciales inválidas. Verifica tu email y contraseña"));
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadRequestException("Password doesn't match");
-        }
+                if (!passwordEncoder.matches(password, user.getPassword())) {
+                        throw new BadRequestException("Credenciales inválidas. Verifica tu email y contraseña");
+                }
 
         String token = jwtService.generateToken(user.getEmail());
 
