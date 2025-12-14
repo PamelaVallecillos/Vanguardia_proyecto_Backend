@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>New Appointment Scheduled</title>
+    <title>Nueva Cita Programada</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style>
         body { font-family: Inter, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
@@ -17,32 +17,32 @@
 <body>
 <div class="container">
     <div class="header">
-        <h2>New Appointment Scheduled</h2>
+        <h2>Nueva Cita Programada</h2>
     </div>
     <div class="content">
-        <p>Dear Dr <strong th:text="${doctorName}"></strong>,</p>
-        <p>A new appointment has been successfully booked for you.</p>
+        <p>Estimado Dr. <strong th:text="${doctorName}"></strong>,</p>
+        <p>Se ha programado una nueva cita para usted exitosamente.</p>
 
         <div class="details-box">
-            <p><strong>Patient:</strong> <span th:text="${patientFullName}"></span></p>
-            <p><strong>Date & Time:</strong> <strong th:text="${appointmentTime}"></strong></p>
-            <p><strong>Type:</strong> <span th:text="${isVirtual ? 'Virtual Consultation' : 'In-Person Appointment'}"></span></p>
-            <p><strong>Initial Symptoms:</strong> <span th:text="${initialSymptoms}"></span></p>
-            <p><strong>Purpose Of Consultation:</strong> <span th:text="${purposeOfConsultation}"></span></p>
+            <p><strong>Paciente:</strong> <span th:text="${patientFullName}"></span></p>
+            <p><strong>Fecha y Hora:</strong> <strong th:text="${appointmentTime}"></strong></p>
+            <p><strong>Tipo:</strong> <span th:text="${isVirtual ? 'Consulta Virtual' : 'Cita Presencial'}"></span></p>
+            <p><strong>Síntomas Iniciales:</strong> <span th:text="${initialSymptoms}"></span></p>
+            <p><strong>Propósito de la Consulta:</strong> <span th:text="${purposeOfConsultation}"></span></p>
         </div>
 
         <div th:if="${isVirtual}">
-            <p><strong>Meeting Link: <span th:text="${meetingLink}"></span></strong></p>
+            <p><strong>Enlace de la Reunión: <span th:text="${meetingLink}"></span></strong></p>
             <div class="button-container">
-                <a th:href="${meetingLink}" class="button">Join Consultation</a>
+                <a th:href="${meetingLink}" class="button">Unirse a la Consulta</a>
             </div>
         </div>
 
-        <p>Please review the patient's file before the consultation.</p>
-        <p>Thank you,<br>The DAT Health Team</p>
+        <p>Por favor, revise el expediente del paciente antes de la consulta.</p>
+        <p>Gracias,<br>El equipo de AgendaSalud</p>
     </div>
     <div class="footer">
-        &copy; <span th:text="${T(java.time.Year).now()}">2026</span> DAT Health. All rights reserved.
+        &copy; <span th:text="${T(java.time.Year).now()}">2025</span> AgendaSalud. Todos los derechos reservados.
     </div>
 </div>
 </body>

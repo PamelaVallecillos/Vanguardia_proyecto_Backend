@@ -24,6 +24,7 @@ import com.example.dat.users.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -171,8 +172,9 @@ public class AuthServiceImpl implements AuthService{
 
     }
 
-    @Override
-    public Response<?> forgetPassword(String email) {
+        @Override
+        @Transactional
+        public Response<?> forgetPassword(String email) {
 
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User Not Found"));
@@ -209,8 +211,9 @@ public class AuthServiceImpl implements AuthService{
                 .build();
     }
 
-    @Override
-    public Response<?> updatePasswordViaResetCode(ResetPasswordRequest resetPasswordRequest) {
+        @Override
+        @Transactional
+        public Response<?> updatePasswordViaResetCode(ResetPasswordRequest resetPasswordRequest) {
 
         String code = resetPasswordRequest.getCode();
         String newPassword = resetPasswordRequest.getNewPassword();

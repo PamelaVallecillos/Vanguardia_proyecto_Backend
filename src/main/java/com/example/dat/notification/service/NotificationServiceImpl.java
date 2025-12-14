@@ -8,6 +8,7 @@ import com.example.dat.users.entity.User;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -26,6 +27,9 @@ public class NotificationServiceImpl implements NotificationService{
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
+    @Value("${spring.mail.username}")
+    private String mailFrom;
+
 
     @Override
     @Async
@@ -42,6 +46,9 @@ public class NotificationServiceImpl implements NotificationService{
 
             helper.setTo(notificationDTO.getRecipient());
             helper.setSubject(notificationDTO.getSubject());
+            if (mailFrom != null && !mailFrom.isBlank()) {
+                helper.setFrom(mailFrom);
+            }
 
 
             // Use template if provided
@@ -59,7 +66,7 @@ public class NotificationServiceImpl implements NotificationService{
 
 
             mailSender.send(mimeMessage);
-            log.info("Email sent out");
+            log.info("Email sent out to {}", notificationDTO.getRecipient());
 
 
             //save to our database table
@@ -74,7 +81,7 @@ public class NotificationServiceImpl implements NotificationService{
             notificationRepo.save(notificationToSave);
 
         }catch (Exception e){
-            log.info(e.getMessage());
+            log.error("Failed to send email", e);
         }
 
     }

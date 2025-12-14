@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Welcome to DAT Health!</title>
+    <title>Bienvenido a AgendaSalud!</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style>
         body { font-family: Inter, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
@@ -16,20 +16,20 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>Welcome to DAT Health!</h1>
+        <h1>Bienvenido a AgendaSalud!</h1>
     </div>
     <div class="content">
-        <p>Hello <strong th:text="${name}"></strong>,</p>
-        <p>Thank you for registering! You are now part of our trusted telemedicine platform, connecting you with specialist doctors for convenient online consultations.</p>
-        <p>You can log in now to complete your profile and book your first appointment.</p>
+        <p>Hola <strong th:text="${name}"></strong>,</p>
+        <p>Gracias por registrarse! Ahora forma parte de nuestra plataforma de telemedicina confiable, que lo conecta con médicos especialistas para consultas en línea convenientes.</p>
+        <p>Puede iniciar sesión ahora para completar su perfil y reservar su primera cita.</p>
         <div class="button-container">
-            <a th:href="${loginLink}" class="button">Go to Login</a>
+            <a th:href="${loginLink}" class="button">Iniciar Sesión</a>
         </div>
-        <p>We are here to help you manage your health with ease.</p>
-        <p>The DAT Health Team</p>
+        <p>Estamos aquí para ayudarle a gestionar su salud con facilidad.</p>
+        <p>El equipo de AgendaSalud</p>
     </div>
     <div class="footer">
-        &copy; <span th:text="${T(java.time.Year).now()}">2026</span> DAT Health. All rights reserved.
+        &copy; <span th:text="${T(java.time.Year).now()}">2025</span> AgendaSalud. Todos los derechos reservados.
     </div>
 </div>
 </body>
