@@ -1,13 +1,7 @@
 package com.example.dat.notification.service;
 
-import com.example.dat.enums.NotificationType;
-import com.example.dat.notification.dto.NotificationDTO;
-import com.example.dat.notification.entity.Notification;
-import com.example.dat.notification.repo.NotificationRepo;
-import com.example.dat.users.entity.User;
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -16,7 +10,15 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.nio.charset.StandardCharsets;
+import com.example.dat.enums.NotificationType;
+import com.example.dat.notification.dto.NotificationDTO;
+import com.example.dat.notification.entity.Notification;
+import com.example.dat.notification.repo.NotificationRepo;
+import com.example.dat.users.entity.User;
+
+import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j

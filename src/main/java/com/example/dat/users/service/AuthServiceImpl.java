@@ -1,6 +1,17 @@
 package com.example.dat.users.service;
 
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.dat.doctor.entity.Doctor;
 import com.example.dat.doctor.repo.DoctorRepo;
 import com.example.dat.exceptions.BadRequestException;
@@ -21,18 +32,9 @@ import com.example.dat.users.entity.PasswordResetCode;
 import com.example.dat.users.entity.User;
 import com.example.dat.users.repo.PasswordResetRepo;
 import com.example.dat.users.repo.UserRepo;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 
 @Service
