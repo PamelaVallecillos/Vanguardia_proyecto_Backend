@@ -1,16 +1,24 @@
 package com.example.dat.doctor.service;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.example.dat.doctor.dto.DoctorDTO;
+import com.example.dat.doctor.dto.ScheduleDTO;
 import com.example.dat.doctor.entity.Doctor;
+import com.example.dat.doctor.entity.Schedule;
 import com.example.dat.doctor.repo.DoctorRepo;
+import com.example.dat.doctor.repo.ScheduleRepo;
 import com.example.dat.enums.Specialization;
 import com.example.dat.exceptions.NotFoundException;
 import com.example.dat.res.Response;
@@ -30,6 +38,7 @@ public class DoctorServiceImpl implements DoctorService{
     private final DoctorRepo doctorRepo;
     private final UserService userService;
     private final ModelMapper modelMapper;
+    private final ScheduleRepo scheduleRepo;
 
 
     @Override
@@ -61,10 +70,46 @@ public class DoctorServiceImpl implements DoctorService{
         dto.setMaxAge(doctor.getEdadMaxima());
         dto.setConsultationDuration(doctor.getTiempoDeConsulta());
         
+        // Convert schedules to DTOs
+        if (doctor.getSchedules() != null && !doctor.getSchedules().isEmpty()) {
+            List<ScheduleDTO> scheduleDTOs = doctor.getSchedules().stream()
+                .map(this::convertScheduleToDTO)
+                .collect(Collectors.toList());
+            dto.setSchedules(scheduleDTOs);
+        }
+        
         return dto;
+    }
+    
+    private ScheduleDTO convertScheduleToDTO(Schedule schedule) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        return ScheduleDTO.builder()
+            .id(schedule.getId())
+            .dayOfWeek(schedule.getDayOfWeek())
+            .isActive(schedule.getIsActive())
+            .startTime(schedule.getStartTime() != null ? schedule.getStartTime().format(formatter) : null)
+            .endTime(schedule.getEndTime() != null ? schedule.getEndTime().format(formatter) : null)
+            .lunchStart(schedule.getLunchStart() != null ? schedule.getLunchStart().format(formatter) : null)
+            .lunchEnd(schedule.getLunchEnd() != null ? schedule.getLunchEnd().format(formatter) : null)
+            .build();
+    }
+    
+    private Schedule convertDTOToSchedule(ScheduleDTO dto, Doctor doctor) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        return Schedule.builder()
+            .id(dto.getId())
+            .dayOfWeek(dto.getDayOfWeek())
+            .isActive(dto.getIsActive() != null ? dto.getIsActive() : false)
+            .startTime(dto.getStartTime() != null ? LocalTime.parse(dto.getStartTime(), formatter) : null)
+            .endTime(dto.getEndTime() != null ? LocalTime.parse(dto.getEndTime(), formatter) : null)
+            .lunchStart(dto.getLunchStart() != null ? LocalTime.parse(dto.getLunchStart(), formatter) : null)
+            .lunchEnd(dto.getLunchEnd() != null ? LocalTime.parse(dto.getLunchEnd(), formatter) : null)
+            .doctor(doctor)
+            .build();
     }
 
     @Override
+    @Transactional
     public Response<?> updateDoctorProfile(DoctorDTO doctorDTO) {
 
         User currentUser = userService.getCurrentUser();
@@ -116,11 +161,33 @@ public class DoctorServiceImpl implements DoctorService{
 
         Optional.ofNullable(doctorDTO.getSpecialization()).ifPresent(doctor::setSpecialization);
 
+        // Handle schedules - delete old ones and create new ones
+        if (doctorDTO.getSchedules() != null) {
+            log.info("Actualizando horarios: {} horarios recibidos", doctorDTO.getSchedules().size());
+            
+            // Remove old schedules
+            if (doctor.getSchedules() != null) {
+                scheduleRepo.deleteAll(doctor.getSchedules());
+                doctor.getSchedules().clear();
+            } else {
+                doctor.setSchedules(new ArrayList<>());
+            }
+            
+            // Add new schedules
+            for (ScheduleDTO scheduleDTO : doctorDTO.getSchedules()) {
+                if (scheduleDTO.getIsActive() != null && scheduleDTO.getIsActive()) {
+                    Schedule schedule = convertDTOToSchedule(scheduleDTO, doctor);
+                    doctor.getSchedules().add(schedule);
+                }
+            }
+        }
+
         Doctor savedDoctor = doctorRepo.save(doctor);
         log.info("=== Perfil del Doctor guardado ===");
         log.info("Valores guardados en BD: restriccionGenero='{}', edadMinima={}, edadMaxima={}, tiempoDeConsulta={}", 
             savedDoctor.getRestriccionGenero(), savedDoctor.getEdadMinima(), 
             savedDoctor.getEdadMaxima(), savedDoctor.getTiempoDeConsulta());
+        log.info("Horarios guardados: {}", savedDoctor.getSchedules() != null ? savedDoctor.getSchedules().size() : 0);
 
         return Response.builder()
                 .statusCode(200)

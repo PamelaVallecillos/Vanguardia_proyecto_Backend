@@ -40,6 +40,8 @@ public class DoctorDTO {
     private Integer maxAge;
     private Integer consultationDuration;
 
+    private List<ScheduleDTO> schedules;
+
     private UserDTO user;
 
 
