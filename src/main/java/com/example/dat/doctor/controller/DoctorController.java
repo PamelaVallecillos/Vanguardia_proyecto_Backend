@@ -1,19 +1,29 @@
 package com.example.dat.doctor.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.dat.doctor.dto.DoctorDTO;
 import com.example.dat.doctor.service.DoctorService;
 import com.example.dat.enums.Specialization;
 import com.example.dat.res.Response;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/doctors")
+@Slf4j
 public class DoctorController {
 
     private final DoctorService doctorService;
@@ -28,6 +38,8 @@ public class DoctorController {
     @PutMapping("/me")
     @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<Response<?>> updateDoctorProfile(@RequestBody DoctorDTO doctorDTO) {
+        log.info("=== CONTROLLER: Request recibido ===");
+        log.info("Todos los campos del DTO: {}", doctorDTO);
         return ResponseEntity.ok(doctorService.updateDoctorProfile(doctorDTO));
     }
 

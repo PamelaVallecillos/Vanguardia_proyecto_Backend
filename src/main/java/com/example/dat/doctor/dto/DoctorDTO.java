@@ -1,6 +1,8 @@
 package com.example.dat.doctor.dto;
 
 //tengo 2 imports de demas import com.example.dat.enums.Specialization; Y import com.example.dat.users.dto.UserDTO;
+import java.util.List;
+
 import com.example.dat.enums.Specialization;
 import com.example.dat.users.dto.UserDTO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -29,14 +31,14 @@ public class DoctorDTO {
 
     private Specialization specialization;
 
-    private String additionalSpecializations;
+    private List<String> additionalSpecializations;
 
     private String licenseNumber;
 
-    private String restriccionGenero;
-    private Integer edadMinima;
-    private Integer edadMaxima;
-    private Integer tiempoDeConsulta;
+    private String genderRestriction;
+    private Integer minAge;
+    private Integer maxAge;
+    private Integer consultationDuration;
 
     private UserDTO user;
 

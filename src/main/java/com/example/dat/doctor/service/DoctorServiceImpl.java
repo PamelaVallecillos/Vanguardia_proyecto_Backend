@@ -43,8 +43,25 @@ public class DoctorServiceImpl implements DoctorService{
         return Response.<DoctorDTO>builder()
                 .statusCode(200)
                 .message("El registro del Doctor ha sido obtenido correctamente.")
-                .data(modelMapper.map(doctor, DoctorDTO.class))
+                .data(convertToDTO(doctor))
                 .build();
+    }
+    
+    private DoctorDTO convertToDTO(Doctor doctor) {
+        DoctorDTO dto = modelMapper.map(doctor, DoctorDTO.class);
+        
+        // Convert comma-separated string to list for additionalSpecializations
+        if (doctor.getAdditionalSpecializations() != null && !doctor.getAdditionalSpecializations().isEmpty()) {
+            dto.setAdditionalSpecializations(List.of(doctor.getAdditionalSpecializations().split(",")));
+        }
+        
+        // Map Spanish entity fields to English DTO fields
+        dto.setGenderRestriction(doctor.getRestriccionGenero());
+        dto.setMinAge(doctor.getEdadMinima());
+        dto.setMaxAge(doctor.getEdadMaxima());
+        dto.setConsultationDuration(doctor.getTiempoDeConsulta());
+        
+        return dto;
     }
 
     @Override
@@ -54,6 +71,16 @@ public class DoctorServiceImpl implements DoctorService{
 
         Doctor doctor = doctorRepo.findByUser(currentUser)
                 .orElseThrow(() -> new NotFoundException("No se encontró perfil del Doctor."));
+
+        // Debug logs
+        log.info("=== Actualizando perfil del Doctor ===");
+        log.info("DTO completo recibido: firstName={}, lastName={}, gender={}, phone={}", 
+            doctorDTO.getFirstName(), doctorDTO.getLastName(), doctorDTO.getGender(), doctorDTO.getPhone());
+        log.info("GenderRestriction recibido: '{}'", doctorDTO.getGenderRestriction());
+        log.info("MinAge recibida: {}", doctorDTO.getMinAge());
+        log.info("MaxAge recibida: {}", doctorDTO.getMaxAge());
+        log.info("ConsultationDuration recibido: {}", doctorDTO.getConsultationDuration());
+        log.info("AdditionalSpecializations: {}", doctorDTO.getAdditionalSpecializations());
 
         // Basic fields (firstName, lastName)
         if (StringUtils.hasText(doctorDTO.getFirstName())) {
@@ -68,26 +95,32 @@ public class DoctorServiceImpl implements DoctorService{
         if (StringUtils.hasText(doctorDTO.getPhone())) {
             doctor.setPhone(doctorDTO.getPhone());
         }
-        if (StringUtils.hasText(doctorDTO.getAdditionalSpecializations())) {
-            doctor.setAdditionalSpecializations(doctorDTO.getAdditionalSpecializations());
+        if (doctorDTO.getAdditionalSpecializations() != null && !doctorDTO.getAdditionalSpecializations().isEmpty()) {
+            doctor.setAdditionalSpecializations(String.join(",", doctorDTO.getAdditionalSpecializations()));
         }
-        if (StringUtils.hasText(doctorDTO.getRestriccionGenero())) {
-            doctor.setRestriccionGenero(doctorDTO.getRestriccionGenero());
+        // Handle genderRestriction: null or empty = "Sin restricción", otherwise = "MASCULINO"/"FEMENINO"
+        if (doctorDTO.getGenderRestriction() == null || doctorDTO.getGenderRestriction().isEmpty()) {
+            doctor.setRestriccionGenero(null);
+        } else {
+            doctor.setRestriccionGenero(doctorDTO.getGenderRestriction());
         }
-        if (doctorDTO.getEdadMinima() != null) {
-            doctor.setEdadMinima(doctorDTO.getEdadMinima());
+        if (doctorDTO.getMinAge() != null) {
+            doctor.setEdadMinima(doctorDTO.getMinAge());
         }
-        if (doctorDTO.getEdadMaxima() != null) {
-            doctor.setEdadMaxima(doctorDTO.getEdadMaxima());
+        if (doctorDTO.getMaxAge() != null) {
+            doctor.setEdadMaxima(doctorDTO.getMaxAge());
         }
-        if (doctorDTO.getTiempoDeConsulta() != null) {
-            doctor.setTiempoDeConsulta(doctorDTO.getTiempoDeConsulta());
+        if (doctorDTO.getConsultationDuration() != null) {
+            doctor.setTiempoDeConsulta(doctorDTO.getConsultationDuration());
         }
 
         Optional.ofNullable(doctorDTO.getSpecialization()).ifPresent(doctor::setSpecialization);
 
-        doctorRepo.save(doctor);
-        log.info("Perfil del Doctor actualizado con éxito.");
+        Doctor savedDoctor = doctorRepo.save(doctor);
+        log.info("=== Perfil del Doctor guardado ===");
+        log.info("Valores guardados en BD: restriccionGenero='{}', edadMinima={}, edadMaxima={}, tiempoDeConsulta={}", 
+            savedDoctor.getRestriccionGenero(), savedDoctor.getEdadMinima(), 
+            savedDoctor.getEdadMaxima(), savedDoctor.getTiempoDeConsulta());
 
         return Response.builder()
                 .statusCode(200)
@@ -102,7 +135,7 @@ public class DoctorServiceImpl implements DoctorService{
         List<Doctor> doctors = doctorRepo.findAll();
 
         List<DoctorDTO> doctorDTOS = doctors.stream()
-                .map(doctor -> modelMapper.map(doctor, DoctorDTO.class))
+                .map(this::convertToDTO)
                 .toList();
 
         return Response.<List<DoctorDTO>>builder()
@@ -122,7 +155,7 @@ public class DoctorServiceImpl implements DoctorService{
         return Response.<DoctorDTO>builder()
                 .statusCode(200)
                 .message("El registro del Doctor ha sido obtenido correctamente.")
-                .data(modelMapper.map(doctor, DoctorDTO.class))
+                .data(convertToDTO(doctor))
                 .build();
     }
 
@@ -132,7 +165,7 @@ public class DoctorServiceImpl implements DoctorService{
         List<Doctor> doctors = doctorRepo.findBySpecialization(specialization);
 
         List<DoctorDTO> doctorDTOs = doctors.stream()
-                .map(doctor -> modelMapper.map(doctor, DoctorDTO.class))
+                .map(this::convertToDTO)
                 .toList();
 
 
