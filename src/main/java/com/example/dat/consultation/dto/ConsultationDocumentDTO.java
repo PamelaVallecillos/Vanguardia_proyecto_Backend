@@ -1,6 +1,5 @@
 package com.example.dat.consultation.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -9,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
@@ -17,21 +15,12 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConsultationDTO {
+public class ConsultationDocumentDTO {
 
     private Long id;
-
-    private Long appointmentId;
-
-    private LocalDateTime consultationDate;
-
-    private String subjectiveNotes;
-
-    private String objectiveFindings;
-
-    private String assessment;
-
-    private String plan;
-
-    private List<ConsultationDocumentDTO> documents;
+    private String fileName;
+    private String filePath;
+    private String fileType;
+    private Long fileSize;
+    private LocalDateTime uploadedAt;
 }

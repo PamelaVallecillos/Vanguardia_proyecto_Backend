@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -26,6 +27,14 @@ public class ConsultationController {
         return ResponseEntity.ok(consultationService.createConsultation(consultationDTO));
     }
 
+    @PostMapping("/{consultationId}/documents")
+    @PreAuthorize("hasAuthority('DOCTOR')")
+    public ResponseEntity<Response<?>> uploadConsultationDocuments(
+            @PathVariable Long consultationId,
+            @RequestParam("files") List<MultipartFile> files) {
+        return ResponseEntity.ok(consultationService.uploadConsultationDocuments(consultationId, files));
+    }
+
     @GetMapping("/appointment/{appointmentId}")
     public ResponseEntity<Response<ConsultationDTO>> getConsultationByAppointmentId(@PathVariable Long appointmentId) {
         return ResponseEntity.ok(consultationService.getConsultationByAppointmentId(appointmentId));
@@ -35,6 +44,12 @@ public class ConsultationController {
     public ResponseEntity<Response<List<ConsultationDTO>>> getConsultationHistoryForPatient(
             @RequestParam(required = false) Long patientId) {
         return ResponseEntity.ok(consultationService.getConsultationHistoryForPatient(patientId));
+    }
+
+    @GetMapping("/doctor/my-consultations")
+    @PreAuthorize("hasAuthority('DOCTOR')")
+    public ResponseEntity<Response<List<ConsultationDTO>>> getMyConsultations() {
+        return ResponseEntity.ok(consultationService.getMyConsultations());
     }
 
 }
