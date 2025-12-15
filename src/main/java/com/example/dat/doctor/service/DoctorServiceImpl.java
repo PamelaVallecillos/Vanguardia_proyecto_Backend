@@ -62,6 +62,27 @@ public class DoctorServiceImpl implements DoctorService{
         if (StringUtils.hasText(doctorDTO.getLastName())) {
             doctor.setLastName(doctorDTO.getLastName());
         }
+        if (StringUtils.hasText(doctorDTO.getGender())) {
+            doctor.setGender(doctorDTO.getGender());
+        }
+        if (StringUtils.hasText(doctorDTO.getPhone())) {
+            doctor.setPhone(doctorDTO.getPhone());
+        }
+        if (StringUtils.hasText(doctorDTO.getAdditionalSpecializations())) {
+            doctor.setAdditionalSpecializations(doctorDTO.getAdditionalSpecializations());
+        }
+        if (StringUtils.hasText(doctorDTO.getRestriccionGenero())) {
+            doctor.setRestriccionGenero(doctorDTO.getRestriccionGenero());
+        }
+        if (doctorDTO.getEdadMinima() != null) {
+            doctor.setEdadMinima(doctorDTO.getEdadMinima());
+        }
+        if (doctorDTO.getEdadMaxima() != null) {
+            doctor.setEdadMaxima(doctorDTO.getEdadMaxima());
+        }
+        if (doctorDTO.getTiempoDeConsulta() != null) {
+            doctor.setTiempoDeConsulta(doctorDTO.getTiempoDeConsulta());
+        }
 
         Optional.ofNullable(doctorDTO.getSpecialization()).ifPresent(doctor::setSpecialization);
 

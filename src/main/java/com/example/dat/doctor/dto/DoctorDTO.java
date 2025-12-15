@@ -23,10 +23,19 @@ public class DoctorDTO {
 
     private String firstName;
     private String lastName;
+    private String gender;
+    private String phone;
 
     private Specialization specialization;
 
+    private String additionalSpecializations;
+
     private String licenseNumber;
+
+    private String restriccionGenero;
+    private Integer edadMinima;
+    private Integer edadMaxima;
+    private Integer tiempoDeConsulta;
 
     private UserDTO user;
 

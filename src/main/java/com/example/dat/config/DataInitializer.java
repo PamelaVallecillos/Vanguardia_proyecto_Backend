@@ -1,19 +1,21 @@
 package com.example.dat.config;
 
-import com.example.dat.role.entity.Role;
-import com.example.dat.role.repo.RoleRepo;
-import com.example.dat.users.entity.User;
-import com.example.dat.users.repo.UserRepo;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.example.dat.role.entity.Role;
+import com.example.dat.role.repo.RoleRepo;
+import com.example.dat.users.entity.User;
+import com.example.dat.users.repo.UserRepo;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
