@@ -87,4 +87,40 @@ public class NotificationServiceImpl implements NotificationService{
         }
 
     }
+
+    @Override
+    @Async
+    public void sendExpedienteNotification(String userEmail, String userName, String expedienteNumber, String patientName) {
+        
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    mimeMessage,
+                    MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                    StandardCharsets.UTF_8.name()
+            );
+            
+            helper.setTo(userEmail);
+            helper.setSubject("Número de Expediente Asignado - AgendaSalud");
+            if (mailFrom != null && !mailFrom.isBlank()) {
+                helper.setFrom(mailFrom);
+            }
+            
+            // Usar la plantilla expediente-notification.html
+            Context context = new Context();
+            context.setVariable("name", userName);
+            context.setVariable("expedienteNumber", expedienteNumber);
+            context.setVariable("patientName", patientName);
+            
+            String htmlContent = templateEngine.process("expediente-notification", context);
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(mimeMessage);
+            log.info("Expediente notification email sent to {}: Expediente #{}", userEmail, expedienteNumber);
+            
+        } catch (Exception e) {
+            log.error("Failed to send expediente notification email to {}", userEmail, e);
+        }
+    }
 }

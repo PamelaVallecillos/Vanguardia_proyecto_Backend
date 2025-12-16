@@ -1,10 +1,9 @@
-package com.example.dat.patient.entity;
+package com.example.dat.dependent.entity;
 
-//Imports: dos de jacarta, solo hay uno | dos los de enums y el user esta de demas 
 import com.example.dat.appointment.entity.Appointment;
 import com.example.dat.enums.BloodGroup;
 import com.example.dat.enums.Genotype;
-import com.example.dat.users.entity.User;
+import com.example.dat.patient.entity.Patient;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,8 +18,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "patients")
-public class Patient {
+@Table(name = "dependents")
+public class Dependent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,11 +31,18 @@ public class Patient {
     private String firstName;
     private String lastName;
     private LocalDate dateOfBirth;
-    private String phone;
 
-    // Essential Medical Fields (simplified for a remote system)
+    @Column(name = "gender", length = 50)
+    private String gender; // MASCULINO, FEMENINO, OTRO
 
-    @Lob // Stores allergies as a comma-separated string
+    @Column(name = "relationship", length = 50)
+    private String relationship; // HIJO/HIJA, PADRE/MADRE, CONYUGE, HERMANO/HERMANA, OTRO
+
+    @Column(name = "profile_photo", length = 500)
+    private String profilePhoto; // File path: uploads/dependents/photo.jpg
+
+    // Medical Fields
+    @Lob
     private String knownAllergies;
 
     @Enumerated(EnumType.STRING)
@@ -45,10 +51,12 @@ public class Patient {
     @Enumerated(EnumType.STRING)
     private Genotype genotype;
 
+    // Relationship: Dependent belongs to a Patient (titular)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "patient_id", nullable = false)
+    private Patient patient;
 
-    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    // Dependent can have their own appointments
+    @OneToMany(mappedBy = "dependent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Appointment> appointments;
 }

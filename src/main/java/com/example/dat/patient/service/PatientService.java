@@ -17,6 +17,11 @@ public interface PatientService {
     Response<PatientDTO> getPatientById(Long patientId);
 
     Response<List<BloodGroup>> getAllBloodGroupEnums();
-    Response<List<Genotype>>getAllGenotypeEnums();
+    
+    Response<List<Genotype>> getAllGenotypeEnums();
+
+    Response<PatientDTO> registerPatientProfile(PatientDTO patientDTO);
+
+    Response<List<PatientDTO>> getMyPatients();
 
 }

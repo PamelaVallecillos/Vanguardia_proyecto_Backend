@@ -2,9 +2,13 @@ package com.example.dat.patient.service;
 
 import com.example.dat.enums.BloodGroup;
 import com.example.dat.enums.Genotype;
+import com.example.dat.exceptions.BadRequestException;
 import com.example.dat.exceptions.NotFoundException;
+import com.example.dat.notification.service.NotificationService;
 import com.example.dat.patient.dto.PatientDTO;
+import com.example.dat.patient.entity.ExpedienteSequence;
 import com.example.dat.patient.entity.Patient;
+import com.example.dat.patient.repo.ExpedienteSequenceRepo;
 import com.example.dat.patient.repo.PatientRepo;
 import com.example.dat.res.Response;
 import com.example.dat.users.entity.User;
@@ -13,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
@@ -28,6 +33,8 @@ public class PatientServiceImpl implements PatientService{
     private final PatientRepo patientRepo;
     private final UserService userService;
     private final ModelMapper modelMapper;
+    private final ExpedienteSequenceRepo expedienteSequenceRepo;
+    private final NotificationService notificationService;
 
 
     @Override
@@ -125,5 +132,97 @@ public class PatientServiceImpl implements PatientService{
                 .message("Genotypes retrieved successfully")
                 .data(genotypes)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public Response<PatientDTO> registerPatientProfile(PatientDTO patientDTO) {
+
+        User currentUser = userService.getCurrentUser();
+
+        // Generar expediente automáticamente
+        String expedienteNumber = generateExpedienteNumber();
+
+        Patient patient = Patient.builder()
+                .expedienteNumber(expedienteNumber)
+                .firstName(patientDTO.getFirstName())
+                .lastName(patientDTO.getLastName())
+                .dateOfBirth(patientDTO.getDateOfBirth())
+                .phone(patientDTO.getPhone())
+                .bloodGroup(patientDTO.getBloodGroup())
+                .genotype(patientDTO.getGenotype())
+                .knownAllergies(patientDTO.getKnownAllergies())
+                .user(currentUser)
+                .build();
+
+        Patient savedPatient = patientRepo.save(patient);
+
+        // Enviar notificación por email con el número de expediente
+        String patientFullName = savedPatient.getFirstName() + " " + savedPatient.getLastName();
+        notificationService.sendExpedienteNotification(
+                currentUser.getEmail(),
+                currentUser.getName(),
+                expedienteNumber,
+                patientFullName
+        );
+
+        log.info("Paciente registrado: {} {} con expediente: {}", 
+            savedPatient.getFirstName(), savedPatient.getLastName(), expedienteNumber);
+
+        PatientDTO responseDTO = modelMapper.map(savedPatient, PatientDTO.class);
+
+        return Response.<PatientDTO>builder()
+                .statusCode(201)
+                .message("Paciente registrado exitosamente. Expediente: " + expedienteNumber)
+                .data(responseDTO)
+                .build();
+    }
+
+    @Override
+    public Response<List<PatientDTO>> getMyPatients() {
+
+        User currentUser = userService.getCurrentUser();
+
+        List<Patient> patients = patientRepo.findByUserId(currentUser.getId());
+
+        List<PatientDTO> patientDTOs = patients.stream()
+                .map(patient -> modelMapper.map(patient, PatientDTO.class))
+                .toList();
+
+        String message = patients.isEmpty() 
+            ? "No hay pacientes registrados para este usuario."
+            : "Pacientes obtenidos correctamente.";
+
+        return Response.<List<PatientDTO>>builder()
+                .statusCode(200)
+                .message(message)
+                .data(patientDTOs)
+                .build();
+    }
+
+    @Transactional
+    private String generateExpedienteNumber() {
+        
+        ExpedienteSequence sequence = expedienteSequenceRepo.findById(1L)
+                .orElseGet(() -> {
+                    ExpedienteSequence newSequence = ExpedienteSequence.builder()
+                            .id(1L)
+                            .lastNumber(0)
+                            .build();
+                    return expedienteSequenceRepo.save(newSequence);
+                });
+
+        int nextNumber = sequence.getLastNumber() + 1;
+
+        // Validar que no exceda 99999
+        if (nextNumber > 99999) {
+            throw new BadRequestException("Se ha alcanzado el límite de expedientes (99999)");
+        }
+
+        sequence.setLastNumber(nextNumber);
+        expedienteSequenceRepo.save(sequence);
+
+        // Formatear con ceros a la izquierda: 00001, 00002, etc.
+        return String.format("%05d", nextNumber);
     }
 }

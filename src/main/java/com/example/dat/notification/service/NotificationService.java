@@ -5,4 +5,6 @@ import com.example.dat.users.entity.User;
 
 public interface NotificationService {
     void sendEmail(NotificationDTO notificationDTO, User user);
+
+    void sendExpedienteNotification(String userEmail, String userName, String expedienteNumber, String patientName);
 }

@@ -48,5 +48,16 @@ public class PatientController {
         return ResponseEntity.ok(patientService.getAllGenotypeEnums());
     }
 
+    @PostMapping("/register")
+    @PreAuthorize("hasAuthority('PATIENT')")
+    public ResponseEntity<Response<PatientDTO>> registerPatientProfile(@RequestBody PatientDTO patientDTO) {
+        return ResponseEntity.status(201).body(patientService.registerPatientProfile(patientDTO));
+    }
+
+    @GetMapping("/my-patients")
+    @PreAuthorize("hasAuthority('PATIENT')")
+    public ResponseEntity<Response<List<PatientDTO>>> getMyPatients() {
+        return ResponseEntity.ok(patientService.getMyPatients());
+    }
 
 }

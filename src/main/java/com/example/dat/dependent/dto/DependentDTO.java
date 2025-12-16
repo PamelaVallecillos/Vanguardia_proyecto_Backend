@@ -1,9 +1,8 @@
-package com.example.dat.patient.dto;
-
+package com.example.dat.dependent.dto;
 
 import com.example.dat.enums.BloodGroup;
 import com.example.dat.enums.Genotype;
-import com.example.dat.users.dto.UserDTO;
+import com.example.dat.patient.dto.PatientDTO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -19,7 +18,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PatientDTO {
+public class DependentDTO {
 
     private Long id;
 
@@ -28,7 +27,10 @@ public class PatientDTO {
     private String firstName;
     private String lastName;
     private LocalDate dateOfBirth;
-    private String phone;
+
+    private String gender;
+    private String relationship;
+    private String profilePhoto;
 
     private String knownAllergies;
 
@@ -36,5 +38,5 @@ public class PatientDTO {
 
     private Genotype genotype;
 
-    private UserDTO user;
+    private PatientDTO patient; // Reference to titular patient
 }
