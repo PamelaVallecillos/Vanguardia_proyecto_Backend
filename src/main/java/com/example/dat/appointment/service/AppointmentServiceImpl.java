@@ -1,11 +1,25 @@
 package com.example.dat.appointment.service;
 
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+
 import com.example.dat.appointment.dto.AppointmentDTO;
 import com.example.dat.appointment.entity.Appointment;
 import com.example.dat.appointment.repo.AppointmentRepo;
 import com.example.dat.doctor.entity.Doctor;
+import com.example.dat.doctor.entity.Schedule;
 import com.example.dat.doctor.repo.DoctorRepo;
+import com.example.dat.doctor.repo.ScheduleRepo;
 import com.example.dat.enums.AppointmentStatus;
 import com.example.dat.exceptions.BadRequestException;
 import com.example.dat.exceptions.NotFoundException;
@@ -16,26 +30,20 @@ import com.example.dat.patient.repo.PatientRepo;
 import com.example.dat.res.Response;
 import com.example.dat.users.entity.User;
 import com.example.dat.users.service.UserService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AppointmentServiceImpl implements AppointmentService {
 
-    private final AppointmentRepo appointmentRepo;
-    private final PatientRepo patientRepo;
-    private final DoctorRepo doctorRepo;
+        private final AppointmentRepo appointmentRepo;
+        private final PatientRepo patientRepo;
+        private final DoctorRepo doctorRepo;
+        private final ScheduleRepo scheduleRepo;
+        private final com.example.dat.dependent.repo.DependentRepo dependentRepo;
     private final UserService userService;
     private final ModelMapper modelMapper;
     private final NotificationService notificationService;
@@ -49,41 +57,124 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         User currentUser = userService.getCurrentUser();
 
-        // 1. Get the patient initiating the booking
+                // DEBUG: log incoming startTime and server timezone to troubleshoot timezone shifts
+                log.info("Incoming appointment startTime (raw DTO): {}", appointmentDTO.getStartTime());
+                log.info("Server default ZoneId: {}", java.time.ZoneId.systemDefault());
+                log.info("Server current Instant: {}", java.time.Instant.now());
+
+        // 1. Get the patient initiating the booking (titular)
         Patient patient = patientRepo.findByUser(currentUser)
                 .orElseThrow(() -> new NotFoundException("Patient profile required for booking."));
 
-        // 2. Get the target doctor
-        Doctor doctor = doctorRepo.findById(appointmentDTO.getDoctorId())
-                .orElseThrow(() -> new NotFoundException("Doctor not found."));
+        // If booking on behalf of a dependent, we'll load it below and use its data for validations
+        com.example.dat.dependent.entity.Dependent dependent = null;
+
 
 
         // --- START: VALIDATION LOGIC ---
-        // Define the proposed time slot and the end time
+        // Define the proposed time slot and compute end time from doctor's configured duration
         LocalDateTime startTime = appointmentDTO.getStartTime();
-        LocalDateTime endTime = startTime.plusMinutes(60); // Assuming 60-min slot
 
-        // 3. Basic validation: booking must be at least 1 hour in advance
-        if (startTime.isBefore(LocalDateTime.now().plusHours(1))) {
-            throw new BadRequestException("Appointments must be booked at least 1 hour in advance.");
+        // 2.a If dependentId provided, load dependent and validate ownership
+        if (appointmentDTO.getDependentId() != null) {
+            dependent = dependentRepo.findById(appointmentDTO.getDependentId())
+                    .orElseThrow(() -> new NotFoundException("Dependent not found."));
+
+            // Ensure the dependent belongs to the patient's user
+            if (!dependent.getPatient().getUser().getId().equals(currentUser.getId())) {
+                throw new BadRequestException("You can only book appointments for your own dependents.");
+            }
         }
+
+        // 3. Get the target doctor
+        Doctor doctor = doctorRepo.findById(appointmentDTO.getDoctorId())
+                .orElseThrow(() -> new NotFoundException("Doctor not found."));
+
+        int doctorMinutes = (doctor.getTiempoDeConsulta() != null && doctor.getTiempoDeConsulta() > 0) ? doctor.getTiempoDeConsulta() : 60;
+        LocalDateTime endTime = startTime.plusMinutes(doctorMinutes);
+
+                // 3.a Determine subject (patient or dependent) data for validations
+                String subjectGender = null;
+                LocalDate subjectDob = null;
+                if (dependent != null) {
+                        subjectGender = dependent.getGender();
+                        subjectDob = dependent.getDateOfBirth();
+                } else {
+                        // Patient's dateOfBirth is available; patient gender not stored currently
+                        subjectDob = patient.getDateOfBirth();
+                }
+
+                // 3.b Gender restriction check
+                if (doctor.getRestriccionGenero() != null && !doctor.getRestriccionGenero().isBlank()
+                                && !doctor.getRestriccionGenero().equalsIgnoreCase("TODOS")) {
+                        if (subjectGender == null || subjectGender.isBlank()) {
+                                throw new BadRequestException("Patient gender not specified; cannot book with this doctor.");
+                        }
+                        String docRestr = doctor.getRestriccionGenero().trim();
+                        if (!subjectGender.equalsIgnoreCase(docRestr) && !docRestr.equalsIgnoreCase("TODOS")) {
+                                throw new BadRequestException("Doctor accepts only patients with gender: " + docRestr);
+                        }
+                }
+
+                // 3.c Age restriction check
+                if (subjectDob != null) {
+                        int age = Period.between(subjectDob, LocalDate.now()).getYears();
+                        if (doctor.getEdadMinima() != null && age < doctor.getEdadMinima()) {
+                                throw new BadRequestException("Patient does not meet the minimum age requirement for this doctor.");
+                        }
+                        if (doctor.getEdadMaxima() != null && age > doctor.getEdadMaxima()) {
+                                throw new BadRequestException("Patient exceeds the maximum age allowed for this doctor.");
+                        }
+                }
+
+                // 4. Basic validation: booking must be at least 1 hour in advance
+                if (startTime.isBefore(LocalDateTime.now().plusHours(1))) {
+                        throw new BadRequestException("Appointments must be booked at least 1 hour in advance.");
+                }
 
         //This code snippet logic used to enforce a mandatory one-hour break (or buffer) for the doctor before a new appointment.
-        LocalDateTime checkStart = startTime.minusMinutes(60);
+                // 5. Check schedule availability for the doctor on the appointment day
+                java.time.DayOfWeek dow = startTime.getDayOfWeek();
+                List<Schedule> schedules = scheduleRepo.findByDoctorId(doctor.getId());
 
+                boolean withinSchedule = false;
+                for (Schedule sch : schedules) {
+                        if (!Boolean.TRUE.equals(sch.getIsActive())) continue;
+                        if (!sch.getDayOfWeek().equalsIgnoreCase(dow.name())) continue;
 
-        // We only need to check for existing appointments whose END TIME overlaps with
-        // the proposed start time, OR whose START TIME overlaps with the proposed end time.
+                        java.time.LocalTime apptStart = startTime.toLocalTime();
+                        java.time.LocalTime apptEnd = endTime.toLocalTime();
 
-        List<Appointment> conflicts = appointmentRepo.findConflictingAppointments(
-                doctor.getId(),
-                checkStart, // Check for conflicts from 1 hour before the proposed start
-                endTime
-        );
+                        if ((apptStart.equals(sch.getStartTime()) || apptStart.isAfter(sch.getStartTime()))
+                                        && (apptEnd.equals(sch.getEndTime()) || apptEnd.isBefore(sch.getEndTime()))) {
 
-        if (!conflicts.isEmpty()) {
-            throw new BadRequestException("Doctor is not available at the requested time. Please check their schedule.");
+                                // Check lunch intersection
+                                if (sch.getLunchStart() != null && sch.getLunchEnd() != null) {
+                                        if (!(apptEnd.isBefore(sch.getLunchStart()) || apptStart.isAfter(sch.getLunchEnd()))) {
+                                                // intersects lunch, not allowed
+                                                continue;
+                                        }
+                                }
+
+                                withinSchedule = true;
+                                break;
+                        }
+                }
+
+        if (!withinSchedule) {
+            throw new BadRequestException("Doctor is not working at the requested day/time.");
         }
+
+                // 6. Conflict detection with existing appointments (overlap)
+                List<Appointment> conflicts = appointmentRepo.findConflictingAppointments(
+                                doctor.getId(),
+                                startTime,
+                                endTime
+                );
+
+                if (!conflicts.isEmpty()) {
+                        throw new BadRequestException("Doctor is not available at the requested time. Please check their schedule.");
+                }
 
 
         // 4a. Generate a unique, random string for the room name.
@@ -99,18 +190,26 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 
         // 5. Build and Save Appointment
-        Appointment appointment = Appointment.builder()
-                .startTime(appointmentDTO.getStartTime())
-                .endTime(appointmentDTO.getStartTime().plusMinutes(60)) // Assuming 60-min slot
+        // Build appointment entity, attach dependent if present
+        Appointment.AppointmentBuilder builder = Appointment.builder()
+                .startTime(startTime)
+                .endTime(endTime)
                 .meetingLink(meetingLink)
                 .initialSymptoms(appointmentDTO.getInitialSymptoms())
                 .purposeOfConsultation(appointmentDTO.getPurposeOfConsultation())
                 .status(AppointmentStatus.SCHEDULED)
                 .doctor(doctor)
-                .patient(patient)
-                .build();
+                .patient(patient);
+
+        if (dependent != null) {
+            builder.dependent(dependent);
+        }
+
+        Appointment appointment = builder.build();
 
         Appointment savedAppointment = appointmentRepo.save(appointment);
+
+        log.info("[BOOK] Saved appointment startTime (entity): {} | endTime: {}", savedAppointment.getStartTime(), savedAppointment.getEndTime());
 
         sendAppointmentConfirmation(savedAppointment);
 
@@ -153,10 +252,20 @@ public class AppointmentServiceImpl implements AppointmentService {
             // 2. Efficiently fetch appointments using the User ID to navigate Patient relationship
             appointments = appointmentRepo.findByPatient_User_IdOrderByIdDesc(userId);
         }
-        // Convert the list of entities to DTOs in a single step
-        List<AppointmentDTO> appointmentDTOList = appointments.stream()
-                .map(appointment -> modelMapper.map(appointment, AppointmentDTO.class))
-                .toList();
+                // Debug: log start times returned from DB before mapping
+                for (Appointment a : appointments) {
+                        log.info("[LIST] Appointment id={} startTime(entity)={} | endTime(entity)={}", a.getId(), a.getStartTime(), a.getEndTime());
+                }
+
+                // Convert the list of entities to DTOs in a single step
+                List<AppointmentDTO> appointmentDTOList = appointments.stream()
+                                .map(appointment -> modelMapper.map(appointment, AppointmentDTO.class))
+                                .toList();
+
+                // Debug: log DTO times after mapping
+                for (AppointmentDTO dto : appointmentDTOList) {
+                        log.info("[LIST] DTO id={} startTime(dto)={} | endTime(dto)={}", dto.getId(), dto.getStartTime(), dto.getEndTime());
+                }
 
         return Response.<List<AppointmentDTO>>builder()
                 .statusCode(200)

@@ -51,10 +51,17 @@ public class Doctor {
 
     private String licenseNumber;
 
-    private String restriccionGenero;
+    @Column(name = "gender_restriction", length = 20)
+    private String restriccionGenero; // MASCULINO, FEMENINO, TODOS
+
+    @Column(name = "min_age")
     private Integer edadMinima;
+
+    @Column(name = "max_age")
     private Integer edadMaxima;
-    private Integer tiempoDeConsulta;
+
+    @Column(name = "consultation_minutes")
+    private Integer tiempoDeConsulta; // duración en minutos
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", unique = true, nullable = false)

@@ -24,8 +24,10 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime startTime;
+
+    @Column(columnDefinition = "DATETIME")
     private LocalDateTime endTime;
     private String meetingLink;
 

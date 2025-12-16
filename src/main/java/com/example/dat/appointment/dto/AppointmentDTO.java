@@ -28,6 +28,9 @@ public class AppointmentDTO {
     @NotNull(message = "Doctor ID is required for booking.")
     private Long doctorId;
 
+    // Optional: book on behalf of a dependent
+    private Long dependentId;
+
     private String purposeOfConsultation;
 
     private String initialSymptoms;
