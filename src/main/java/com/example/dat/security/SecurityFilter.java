@@ -40,7 +40,7 @@ public class SecurityFilter {
                         ex.accessDeniedHandler(customAccessDenialHandler)
                                 .authenticationEntryPoint(customAuthenticationEntryPoint))
                 .authorizeHttpRequests(req -> //Aqui falta"
-                    req.requestMatchers("/api/auth/**", "/api/doctors/**", "/profile-picture/**", "/consultation-documents/**").permitAll()
+                    req.requestMatchers("/api/auth/**", "/api/doctors/**", "/profile-picture/**", "/consultation-documents/**", "/dependents/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(mag -> //Aqui falta
                         mag.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

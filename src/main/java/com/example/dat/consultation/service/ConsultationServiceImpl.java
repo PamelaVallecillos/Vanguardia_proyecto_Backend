@@ -1,30 +1,5 @@
 package com.example.dat.consultation.service;
 
-import com.example.dat.appointment.entity.Appointment;
-import com.example.dat.appointment.repo.AppointmentRepo;
-import com.example.dat.consultation.dto.ConsultationDTO;
-import com.example.dat.consultation.dto.ConsultationDocumentDTO;
-import com.example.dat.consultation.entity.Consultation;
-import com.example.dat.consultation.entity.ConsultationDocument;
-import com.example.dat.consultation.repo.ConsultationDocumentRepo;
-import com.example.dat.consultation.repo.ConsultationRepo;
-import com.example.dat.enums.AppointmentStatus;
-import com.example.dat.exceptions.BadRequestException;
-import com.example.dat.exceptions.NotFoundException;
-import com.example.dat.doctor.entity.Doctor;
-import com.example.dat.doctor.repo.DoctorRepo;
-import com.example.dat.patient.entity.Patient;
-import com.example.dat.patient.repo.PatientRepo;
-import com.example.dat.res.Response;
-import com.example.dat.users.entity.User;
-import com.example.dat.users.service.UserService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +9,33 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.example.dat.appointment.entity.Appointment;
+import com.example.dat.appointment.repo.AppointmentRepo;
+import com.example.dat.consultation.dto.ConsultationDTO;
+import com.example.dat.consultation.dto.ConsultationDocumentDTO;
+import com.example.dat.consultation.entity.Consultation;
+import com.example.dat.consultation.entity.ConsultationDocument;
+import com.example.dat.consultation.repo.ConsultationDocumentRepo;
+import com.example.dat.consultation.repo.ConsultationRepo;
+import com.example.dat.doctor.entity.Doctor;
+import com.example.dat.doctor.repo.DoctorRepo;
+import com.example.dat.enums.AppointmentStatus;
+import com.example.dat.exceptions.BadRequestException;
+import com.example.dat.exceptions.NotFoundException;
+import com.example.dat.patient.entity.Patient;
+import com.example.dat.patient.repo.PatientRepo;
+import com.example.dat.res.Response;
+import com.example.dat.users.entity.User;
+import com.example.dat.users.service.UserService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 
 @Service
