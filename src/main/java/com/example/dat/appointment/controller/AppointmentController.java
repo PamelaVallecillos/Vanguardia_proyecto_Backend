@@ -18,7 +18,6 @@ import com.example.dat.appointment.dto.AppointmentDTO;
 import com.example.dat.appointment.service.AppointmentService;
 import com.example.dat.res.Response;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
