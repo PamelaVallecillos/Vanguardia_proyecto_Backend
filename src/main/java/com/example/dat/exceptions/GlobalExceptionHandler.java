@@ -2,6 +2,9 @@ package com.example.dat.exceptions;
 
 
 import com.example.dat.res.Response;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import java.time.format.DateTimeParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -14,7 +17,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Response<?>> handleAllUnknownExceptions(Exception ex){
         Response<?> response = Response.builder()
                 .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(ex.getMessage())
+                .message("Ocurrió un error inesperado. Inténtalo nuevamente más tarde.")
                 .build();
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -35,6 +38,24 @@ public class GlobalExceptionHandler {
         Response<?> response = Response.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({DateTimeParseException.class})
+    public ResponseEntity<Response<?>> handleDateTimeParse(DateTimeParseException ex){
+        Response<?> response = Response.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message("Formato de fecha u hora inválido. Usa el formato correcto (por ejemplo, HH:mm).")
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<Response<?>> handleBadPayload(Exception ex){
+        Response<?> response = Response.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message("Cuerpo de la solicitud inválido. Verifica los datos enviados.")
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }

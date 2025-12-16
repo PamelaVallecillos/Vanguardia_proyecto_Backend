@@ -26,7 +26,7 @@ public class RoleServiceImpl implements RoleService {
 
         return Response.<Role>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Role Saved Successfully")
+                .message("Rol guardado correctamente")
                 .data(savedRole)
                 .build();
     }
@@ -35,14 +35,14 @@ public class RoleServiceImpl implements RoleService {
     public Response<Role> updateRole(Role roleRequest) {
 
         Role role = roleRepo.findById(roleRequest.getId())
-                .orElseThrow(() -> new NotFoundException("Role not found"));
+            .orElseThrow(() -> new NotFoundException("Rol no encontrado"));
 
         role.setName(roleRequest.getName());
 
         Role updatedRole = roleRepo.save(role);
         return Response.<Role>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Role updated successfully")
+                .message("Rol actualizado correctamente")
                 .data(updatedRole)
                 .build();
     }
@@ -53,7 +53,7 @@ public class RoleServiceImpl implements RoleService {
         List<Role> roles = roleRepo.findAll();
         return Response.<List<Role>>builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Roles retreived successfully")
+                .message("Roles obtenidos correctamente")
                 .data(roles)
                 .build();
 
@@ -62,14 +62,14 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Response<?> deleteRole(Long id) {
         if (!roleRepo.existsById(id)) {
-            throw new NotFoundException("Role Not Found");
+            throw new NotFoundException("Rol no encontrado");
         }
 
         roleRepo.deleteById(id);
 
         return Response.builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Role deleted successfully")
+                .message("Rol eliminado correctamente")
                 .build();
     }
 }

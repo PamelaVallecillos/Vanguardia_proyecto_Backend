@@ -34,12 +34,16 @@ public class Patient {
     private LocalDate dateOfBirth;
     private String phone;
 
+    // Gender of titular patient (e.g., "MASCULINO", "FEMENINO")
+    @Column(name = "gender", length = 20)
+    private String gender;
+
     // Essential Medical Fields (simplified for a remote system)
 
     @Lob // Stores allergies as a comma-separated string
     private String knownAllergies;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = com.example.dat.enums.converter.BloodGroupConverter.class)
     private BloodGroup bloodGroup;
 
     @Enumerated(EnumType.STRING)

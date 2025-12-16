@@ -62,11 +62,11 @@ public class ConsultationServiceImpl implements ConsultationService{
         Long appointmentId = consultationDTO.getAppointmentId();
 
         Appointment appointment = appointmentRepo.findById(appointmentId)
-                .orElseThrow(() -> new NotFoundException("Appointment not found."));
+            .orElseThrow(() -> new NotFoundException("Cita no encontrada."));
 
         // Security Check 1: Must be the doctor linked to the appointment
         if (!appointment.getDoctor().getUser().getId().equals(user.getId())) {
-            throw new BadRequestException("You are not authorized to create notes for this consultation.");
+            throw new BadRequestException("No estás autorizado para crear notas para esta consulta.");
         }
         // Complete the appointment
         appointment.setStatus(AppointmentStatus.COMPLETED);
@@ -74,7 +74,7 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         // Check 3: Ensure a consultation doesn't already exist for this appointment
         if (consultationRepo.findByAppointmentId(appointmentId).isPresent()) {
-            throw new BadRequestException("Consultation notes already exist for this appointment.");
+            throw new BadRequestException("Ya existen notas de consulta para esta cita.");
         }
 
         Consultation consultation = Consultation.builder()
@@ -91,7 +91,7 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         return Response.<ConsultationDTO>builder()
                 .statusCode(200)
-                .message("Consultation notes saved successfully.")
+                .message("Notas de consulta guardadas correctamente.")
                 .data(ConsultationDTO.builder()
                         .id(savedConsultation.getId())
                         .build())
@@ -103,13 +103,13 @@ public class ConsultationServiceImpl implements ConsultationService{
     public Response<?> uploadConsultationDocuments(Long consultationId, List<MultipartFile> files) {
         
         Consultation consultation = consultationRepo.findById(consultationId)
-                .orElseThrow(() -> new NotFoundException("Consultation not found"));
+            .orElseThrow(() -> new NotFoundException("Consulta no encontrada"));
         
         User user = userService.getCurrentUser();
         
         // Security: Only the doctor who created the consultation can upload documents
         if (!consultation.getAppointment().getDoctor().getUser().getId().equals(user.getId())) {
-            throw new BadRequestException("You are not authorized to upload documents for this consultation.");
+            throw new BadRequestException("No estás autorizado para subir documentos para esta consulta.");
         }
         
         List<ConsultationDocumentDTO> uploadedDocs = new ArrayList<>();
@@ -127,7 +127,7 @@ public class ConsultationServiceImpl implements ConsultationService{
                 
                 // Validate file size (10MB max)
                 if (file.getSize() > 10 * 1024 * 1024) {
-                    throw new BadRequestException("File " + file.getOriginalFilename() + " exceeds maximum size of 10MB");
+                    throw new BadRequestException("El archivo " + file.getOriginalFilename() + " excede el tamaño máximo de 10MB");
                 }
                 
                 // Generate unique filename
@@ -158,15 +158,15 @@ public class ConsultationServiceImpl implements ConsultationService{
                 log.info("Documento subido: {} para consulta ID: {}", originalFilename, consultationId);
             }
             
-            return Response.builder()
+                return Response.builder()
                     .statusCode(200)
-                    .message("Documents uploaded successfully")
+                    .message("Documentos subidos correctamente")
                     .data(uploadedDocs)
                     .build();
                     
         } catch (IOException e) {
-            log.error("Error uploading documents: ", e);
-            throw new BadRequestException("Failed to upload documents: " + e.getMessage());
+            log.error("Error al subir documentos: ", e);
+            throw new BadRequestException("Error al subir documentos: " + e.getMessage());
         }
     }
 
@@ -176,13 +176,13 @@ public class ConsultationServiceImpl implements ConsultationService{
         User user = userService.getCurrentUser();
 
         Consultation consultation = consultationRepo.findByAppointmentId(appointmentId)
-                .orElseThrow(() -> new NotFoundException("Consultation notes not found for appointment ID: " + appointmentId));
+            .orElseThrow(() -> new NotFoundException("No se encontraron notas de consulta para la cita con ID: " + appointmentId));
 
         ConsultationDTO dto = convertConsultationToDTO(consultation);
 
         return Response.<ConsultationDTO>builder()
                 .statusCode(200)
-                .message("Consultation notes retrieved successfully.")
+                .message("Notas de consulta obtenidas correctamente.")
                 .data(dto)
                 .build();
 
@@ -195,14 +195,14 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         // 1. If patientId is null, retrieve the ID of the current authenticated patient.
         if (patientId == null) {
-            Patient currentPatient = patientRepo.findByUser(user)
-                    .orElseThrow(() -> new BadRequestException("Patient profile not found for the current user"));
+                Patient currentPatient = patientRepo.findByUser(user)
+                    .orElseThrow(() -> new BadRequestException("Perfil de paciente no encontrado para el usuario actual"));
             patientId = currentPatient.getId();
         }
 
         // Find the patient to ensure they exist (or to perform future security checks)
         patientRepo.findById(patientId)
-                .orElseThrow(() -> new NotFoundException("Patient not found "));
+            .orElseThrow(() -> new NotFoundException("Paciente no encontrado"));
 
 
         // Use the repository method to fetch all consultations linked via appointments
@@ -211,7 +211,7 @@ public class ConsultationServiceImpl implements ConsultationService{
         if (history.isEmpty()) {
             return Response.<List<ConsultationDTO>>builder()
                     .statusCode(200)
-                    .message("No consultation history found for this patient.")
+                    .message("No se encontraron consultas para este paciente.")
                     .data(List.of())
                     .build();
         }
@@ -222,7 +222,7 @@ public class ConsultationServiceImpl implements ConsultationService{
 
         return Response.<List<ConsultationDTO>>builder()
                 .statusCode(200)
-                .message("Consultation history retrieved successfully.")
+                .message("Historial de consultas obtenido correctamente.")
                 .data(historyDTOs)
                 .build();
 
@@ -235,15 +235,15 @@ public class ConsultationServiceImpl implements ConsultationService{
         
         // Get current doctor
         Doctor doctor = doctorRepo.findByUser(user)
-                .orElseThrow(() -> new BadRequestException("Doctor profile not found for the current user"));
+            .orElseThrow(() -> new BadRequestException("Perfil de doctor no encontrado para el usuario actual"));
         
         // Get all consultations for this doctor
         List<Consultation> consultations = consultationRepo.findByAppointmentDoctorIdOrderByConsultationDateDesc(doctor.getId());
         
         if (consultations.isEmpty()) {
-            return Response.<List<ConsultationDTO>>builder()
+                return Response.<List<ConsultationDTO>>builder()
                     .statusCode(200)
-                    .message("No consultations found.")
+                    .message("No se encontraron consultas.")
                     .data(List.of())
                     .build();
         }
@@ -254,7 +254,7 @@ public class ConsultationServiceImpl implements ConsultationService{
         
         return Response.<List<ConsultationDTO>>builder()
                 .statusCode(200)
-                .message("Consultations retrieved successfully.")
+            .message("Consultas obtenidas correctamente.")
                 .data(consultationDTOs)
                 .build();
     }

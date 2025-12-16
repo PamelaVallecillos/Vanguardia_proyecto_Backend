@@ -67,8 +67,8 @@ public class AuthServiceImpl implements AuthService{
     @Override
     public Response<String> register(RegistrationRequest request) {
         /// 1. Check if user already exists
-        if (userRepo.findByEmail(request.getEmail()).isPresent()) {
-            throw new BadRequestException("User with email already exists");
+                if (userRepo.findByEmail(request.getEmail()).isPresent()) {
+                        throw new BadRequestException("Ya existe un usuario con este correo electrónico");
         }
 
         // Determine the roles to assign. Default to PATIENT if none are provided.
@@ -79,8 +79,8 @@ public class AuthServiceImpl implements AuthService{
 
         boolean isDoctor = requestedRoleNames.contains("DOCTOR");
 
-        if (isDoctor && (request.getLicenseNumber() == null || request.getLicenseNumber().isBlank())) {
-            throw new BadRequestException("License number required to register a doctor.");
+                if (isDoctor && (request.getLicenseNumber() == null || request.getLicenseNumber().isBlank())) {
+                        throw new BadRequestException("Se requiere número de licencia para registrar un doctor.");
         }
 
         /// 2. Load and validate roles from the database
@@ -90,8 +90,8 @@ public class AuthServiceImpl implements AuthService{
                 .toList();
 
 
-        if (roles.isEmpty()) {
-            throw new NotFoundException("Registration failed: Requested roles were not found in the database.");
+                if (roles.isEmpty()) {
+                        throw new NotFoundException("Registro fallido: los roles solicitados no se encontraron en la base de datos.");
         }
         /// 3. Create and save new user entity
         User newUser = User.builder()
@@ -139,7 +139,7 @@ public class AuthServiceImpl implements AuthService{
         // 6. Return success response
         return Response.<String>builder()
                 .statusCode(200)
-                .message("Registration successful. A welcome email has been sent to you.")
+                .message("Registro exitoso. Se ha enviado un correo de bienvenida.")
                 .data(savedUser.getEmail())
                 .build();
 
@@ -212,7 +212,7 @@ public class AuthServiceImpl implements AuthService{
 
         return Response.builder()
                 .statusCode(200)
-                .message("Password reset code sent to your email")
+                .message("Código de restablecimiento de contraseña enviado a tu correo")
                 .build();
     }
 
@@ -229,12 +229,12 @@ public class AuthServiceImpl implements AuthService{
 
         // Find and validate code
         PasswordResetCode resetCode = passwordResetRepo.findByCode(code)
-                .orElseThrow(() -> new BadRequestException("Invalid reset code"));      
+                .orElseThrow(() -> new BadRequestException("Código de restablecimiento inválido"));      
 
         // Check expiration first
         if (resetCode.getExpiryDate().isBefore(LocalDateTime.now())) {
             passwordResetRepo.delete(resetCode); // Clean up expired code
-            throw new BadRequestException("Reset code has expired");
+            throw new BadRequestException("El código de restablecimiento ha expirado");
         }
 
         //update the password
@@ -249,7 +249,7 @@ public class AuthServiceImpl implements AuthService{
         // Send password confirmation email
         NotificationDTO passwordResetEmail = NotificationDTO.builder()
                 .recipient(user.getEmail())
-                .subject("Password Updated Successfully")
+                .subject("Contraseña actualizada correctamente")
                 .templateName("password-update-confirmation")
                 .templateVariables(Map.of(
                         "name", user.getName()
@@ -260,7 +260,7 @@ public class AuthServiceImpl implements AuthService{
 
         return Response.builder()
                 .statusCode(HttpStatus.OK.value())
-                .message("Password updated successfully")
+                .message("Contraseña actualizada correctamente")
                 .build();
 
     }
@@ -293,9 +293,9 @@ public class AuthServiceImpl implements AuthService{
     private void sendRegistrationEmail(RegistrationRequest request, User user){
         NotificationDTO welcomeEmail = NotificationDTO.builder()
                 .recipient(user.getEmail())
-                .subject("Welcome to DAT Health!")
+                .subject("¡Bienvenido a DAT Health!")
                 .templateName("welcome")
-                .message("Thank you for registering Your account is ready.")
+                .message("Gracias por registrarte. Tu cuenta está lista.")
                 .templateVariables(Map.of(
                         "name", request.getName(),
                         "loginLink", loginLink

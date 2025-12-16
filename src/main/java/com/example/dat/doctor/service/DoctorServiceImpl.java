@@ -100,10 +100,10 @@ public class DoctorServiceImpl implements DoctorService{
             .id(dto.getId())
             .dayOfWeek(dto.getDayOfWeek())
             .isActive(dto.getIsActive() != null ? dto.getIsActive() : false)
-            .startTime(dto.getStartTime() != null ? LocalTime.parse(dto.getStartTime(), formatter) : null)
-            .endTime(dto.getEndTime() != null ? LocalTime.parse(dto.getEndTime(), formatter) : null)
-            .lunchStart(dto.getLunchStart() != null ? LocalTime.parse(dto.getLunchStart(), formatter) : null)
-            .lunchEnd(dto.getLunchEnd() != null ? LocalTime.parse(dto.getLunchEnd(), formatter) : null)
+            .startTime(org.springframework.util.StringUtils.hasText(dto.getStartTime()) ? LocalTime.parse(dto.getStartTime(), formatter) : null)
+            .endTime(org.springframework.util.StringUtils.hasText(dto.getEndTime()) ? LocalTime.parse(dto.getEndTime(), formatter) : null)
+            .lunchStart(org.springframework.util.StringUtils.hasText(dto.getLunchStart()) ? LocalTime.parse(dto.getLunchStart(), formatter) : null)
+            .lunchEnd(org.springframework.util.StringUtils.hasText(dto.getLunchEnd()) ? LocalTime.parse(dto.getLunchEnd(), formatter) : null)
             .doctor(doctor)
             .build();
     }

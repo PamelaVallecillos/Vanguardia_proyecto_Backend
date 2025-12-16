@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
-            throw new NotFoundException("User is not authenticated");
+            throw new NotFoundException("Usuario no autenticado");
         }
         String email = authentication.getName();
 
@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
 
         return Response.<UserDTO>builder()
                 .statusCode(200)
-                .message("User details retrieved successfully.")
+                .message("Datos del usuario obtenidos correctamente.")
                 .data(userDTO)
                 .build();
 
@@ -78,13 +78,13 @@ public class UserServiceImpl implements UserService {
     public Response<UserDTO> getUserById(Long userId) {
 
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found with ID: " + userId));
+            .orElseThrow(() -> new NotFoundException("Usuario no encontrado con ID: " + userId));
 
         UserDTO userDTO = modelMapper.map(user, UserDTO.class);
 
         return Response.<UserDTO>builder()
                 .statusCode(200)
-                .message("User details retrieved successfully.")
+                .message("Datos del usuario obtenidos correctamente.")
                 .data(userDTO)
                 .build();
     }
@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
 
         return Response.<List<UserDTO>>builder()
                 .statusCode(200)
-                .message("All users retrieved successfully.")
+                .message("Usuarios obtenidos correctamente.")
                 .data(userDTOS)
                 .build();
     }
@@ -114,11 +114,11 @@ public class UserServiceImpl implements UserService {
 
 
         if (oldPassword == null || newPassword == null) {
-            throw new BadRequestException("Old and New Password Required");
+            throw new BadRequestException("Se requieren la contraseña actual y la nueva");
         }
         // Validate the old password.
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new BadRequestException("Old Password not Correct");
+            throw new BadRequestException("La contraseña actual no es correcta");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -127,7 +127,7 @@ public class UserServiceImpl implements UserService {
         // Send password change confirmation email.
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .recipient(user.getEmail())
-                .subject("Your Password Was Successfully Changed")
+                .subject("Tu contraseña fue cambiada exitosamente")
                 .templateName("password-change")
                 .templateVariables(Map.of(
                         "name", user.getName()
@@ -137,7 +137,7 @@ public class UserServiceImpl implements UserService {
 
         return Response.builder()
                 .statusCode(200)
-                .message("Password Changed Successfully")
+                .message("Contraseña actualizada correctamente")
                 .build();
 
     }
@@ -191,8 +191,8 @@ public class UserServiceImpl implements UserService {
                     .build();
 
         } catch (IOException e) {
-            log.error("Failed to upload profile picture", e);
-            throw new RuntimeException("Failed to upload profile picture: " + e.getMessage());
+            log.error("Error al subir la foto de perfil", e);
+            throw new RuntimeException("Error al subir la foto de perfil: " + e.getMessage());
         }
     }
 

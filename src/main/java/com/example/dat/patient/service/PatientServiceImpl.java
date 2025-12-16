@@ -73,6 +73,11 @@ public class PatientServiceImpl implements PatientService{
             patient.setPhone(patientDTO.getPhone());
         }
 
+        // Gender
+        if (StringUtils.hasText(patientDTO.getGender())) {
+            patient.setGender(patientDTO.getGender());
+        }
+
         // LocalDate field
         Optional.ofNullable(patientDTO.getDateOfBirth()).ifPresent(patient::setDateOfBirth);
 
@@ -149,6 +154,7 @@ public class PatientServiceImpl implements PatientService{
                 .lastName(patientDTO.getLastName())
                 .dateOfBirth(patientDTO.getDateOfBirth())
                 .phone(patientDTO.getPhone())
+            .gender(patientDTO.getGender())
                 .bloodGroup(patientDTO.getBloodGroup())
                 .genotype(patientDTO.getGenotype())
                 .knownAllergies(patientDTO.getKnownAllergies())

@@ -78,7 +78,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         // 2.a If dependentId provided, load dependent and validate ownership
         if (appointmentDTO.getDependentId() != null) {
             dependent = dependentRepo.findById(appointmentDTO.getDependentId())
-                    .orElseThrow(() -> new NotFoundException("Dependent not found."));
+                    .orElseThrow(() -> new NotFoundException("Dependiente no encontrado."));
 
             // Ensure the dependent belongs to the patient's user
             if (!dependent.getPatient().getUser().getId().equals(currentUser.getId())) {
@@ -88,7 +88,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // 3. Get the target doctor
         Doctor doctor = doctorRepo.findById(appointmentDTO.getDoctorId())
-                .orElseThrow(() -> new NotFoundException("Doctor not found."));
+                .orElseThrow(() -> new NotFoundException("Doctor no encontrado."));
 
         int doctorMinutes = (doctor.getTiempoDeConsulta() != null && doctor.getTiempoDeConsulta() > 0) ? doctor.getTiempoDeConsulta() : 60;
         LocalDateTime endTime = startTime.plusMinutes(doctorMinutes);
@@ -100,19 +100,21 @@ public class AppointmentServiceImpl implements AppointmentService {
                         subjectGender = dependent.getGender();
                         subjectDob = dependent.getDateOfBirth();
                 } else {
-                        // Patient's dateOfBirth is available; patient gender not stored currently
+                        // As titular, use patient data
                         subjectDob = patient.getDateOfBirth();
+                        subjectGender = patient.getGender();
                 }
 
                 // 3.b Gender restriction check
                 if (doctor.getRestriccionGenero() != null && !doctor.getRestriccionGenero().isBlank()
                                 && !doctor.getRestriccionGenero().equalsIgnoreCase("TODOS")) {
-                        if (subjectGender == null || subjectGender.isBlank()) {
-                                throw new BadRequestException("Patient gender not specified; cannot book with this doctor.");
-                        }
                         String docRestr = doctor.getRestriccionGenero().trim();
-                        if (!subjectGender.equalsIgnoreCase(docRestr) && !docRestr.equalsIgnoreCase("TODOS")) {
-                                throw new BadRequestException("Doctor accepts only patients with gender: " + docRestr);
+                        if (subjectGender == null || subjectGender.isBlank()) {
+                                throw new BadRequestException("El género del paciente no está especificado; no se puede reservar con la restricción del doctor: " + docRestr);
+                        }
+                        String subj = subjectGender.trim();
+                        if (!subj.equalsIgnoreCase(docRestr)) {
+                                throw new BadRequestException("El doctor solo acepta pacientes con género: " + docRestr);
                         }
                 }
 
@@ -120,16 +122,21 @@ public class AppointmentServiceImpl implements AppointmentService {
                 if (subjectDob != null) {
                         int age = Period.between(subjectDob, LocalDate.now()).getYears();
                         if (doctor.getEdadMinima() != null && age < doctor.getEdadMinima()) {
-                                throw new BadRequestException("Patient does not meet the minimum age requirement for this doctor.");
+                                throw new BadRequestException("El paciente no cumple con la edad mínima requerida por este doctor.");
                         }
                         if (doctor.getEdadMaxima() != null && age > doctor.getEdadMaxima()) {
-                                throw new BadRequestException("Patient exceeds the maximum age allowed for this doctor.");
+                                throw new BadRequestException("El paciente excede la edad máxima permitida por este doctor.");
+                        }
+                } else {
+                        // If doctor has age restrictions but subject DOB is missing, block booking
+                        if (doctor.getEdadMinima() != null || doctor.getEdadMaxima() != null) {
+                                throw new BadRequestException("La fecha de nacimiento es obligatoria debido a las restricciones de edad del doctor.");
                         }
                 }
 
                 // 4. Basic validation: booking must be at least 1 hour in advance
                 if (startTime.isBefore(LocalDateTime.now().plusHours(1))) {
-                        throw new BadRequestException("Appointments must be booked at least 1 hour in advance.");
+                        throw new BadRequestException("Las citas deben reservarse con al menos 1 hora de anticipación.");
                 }
 
         //This code snippet logic used to enforce a mandatory one-hour break (or buffer) for the doctor before a new appointment.
@@ -161,8 +168,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                         }
                 }
 
-        if (!withinSchedule) {
-            throw new BadRequestException("Doctor is not working at the requested day/time.");
+                if (!withinSchedule) {
+                        throw new BadRequestException("El doctor no está trabajando en el día/hora solicitados.");
         }
 
                 // 6. Conflict detection with existing appointments (overlap)
@@ -173,7 +180,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 );
 
                 if (!conflicts.isEmpty()) {
-                        throw new BadRequestException("Doctor is not available at the requested time. Please check their schedule.");
+                        throw new BadRequestException("El doctor no está disponible a la hora solicitada. Por favor, revisa su horario.");
                 }
 
 
@@ -289,7 +296,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getDoctor().getUser().getId().equals(user.getId());
 
         if (!isOwner) {
-            throw new BadRequestException("You do not have permission to cancel this appointment.");
+            throw new BadRequestException("No tienes permiso para cancelar esta cita.");
         }
 
         // Update status
@@ -318,7 +325,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         // Security Check 1: Ensure the current user is the Doctor assigned to this appointment
         if (!appointment.getDoctor().getUser().getId().equals(currentUser.getId())) {
-            throw new BadRequestException("Only the assigned doctor can mark this appointment as complete.");
+            throw new BadRequestException("Solo el doctor asignado puede marcar esta cita como completada.");
         }
 
         // 2. Update status and end time

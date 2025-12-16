@@ -30,6 +30,8 @@ public class PatientDTO {
     private LocalDate dateOfBirth;
     private String phone;
 
+    private String gender;
+
     private String knownAllergies;
 
     private BloodGroup bloodGroup;

@@ -52,11 +52,11 @@ public class DependentServiceImpl implements DependentService {
         
         // Verify patient exists and belongs to current user
         Patient patient = patientRepo.findById(patientId)
-                .orElseThrow(() -> new NotFoundException("Patient not found"));
+            .orElseThrow(() -> new NotFoundException("Paciente no encontrado"));
         
         User currentUser = userService.getCurrentUser();
         if (!patient.getUser().getId().equals(currentUser.getId())) {
-            throw new BadRequestException("You can only register dependents for your own patient profile");
+            throw new BadRequestException("Solo puedes registrar dependientes para tu propio perfil de paciente");
         }
 
         // Generate expediente number
@@ -86,7 +86,7 @@ public class DependentServiceImpl implements DependentService {
 
         return Response.<DependentDTO>builder()
                 .statusCode(201)
-                .message("Dependent registered successfully")
+                .message("Dependiente registrado exitosamente")
                 .data(responseDTO)
                 .build();
     }
@@ -96,11 +96,11 @@ public class DependentServiceImpl implements DependentService {
         
         // Verify patient exists
         Patient patient = patientRepo.findById(patientId)
-                .orElseThrow(() -> new NotFoundException("Patient not found"));
+            .orElseThrow(() -> new NotFoundException("Paciente no encontrado"));
 
         User currentUser = userService.getCurrentUser();
         if (!patient.getUser().getId().equals(currentUser.getId())) {
-            throw new BadRequestException("You can only view your own dependents");
+            throw new BadRequestException("Solo puedes ver tus propios dependientes");
         }
 
         List<Dependent> dependents = dependentRepo.findByPatientId(patientId);
@@ -111,7 +111,7 @@ public class DependentServiceImpl implements DependentService {
 
         return Response.<List<DependentDTO>>builder()
                 .statusCode(200)
-                .message("Dependents retrieved successfully")
+                .message("Dependientes obtenidos correctamente")
                 .data(dependentDTOs)
                 .build();
     }
@@ -120,18 +120,18 @@ public class DependentServiceImpl implements DependentService {
     public Response<DependentDTO> getDependentById(Long dependentId) {
         
         Dependent dependent = dependentRepo.findById(dependentId)
-                .orElseThrow(() -> new NotFoundException("Dependent not found"));
+            .orElseThrow(() -> new NotFoundException("Dependiente no encontrado"));
 
         User currentUser = userService.getCurrentUser();
         if (!dependent.getPatient().getUser().getId().equals(currentUser.getId())) {
-            throw new BadRequestException("You can only view your own dependents");
+            throw new BadRequestException("Solo puedes ver tus propios dependientes");
         }
 
         DependentDTO dependentDTO = modelMapper.map(dependent, DependentDTO.class);
 
         return Response.<DependentDTO>builder()
                 .statusCode(200)
-                .message("Dependent retrieved successfully")
+                .message("Dependiente obtenido correctamente")
                 .data(dependentDTO)
                 .build();
     }
@@ -141,11 +141,11 @@ public class DependentServiceImpl implements DependentService {
     public Response<DependentDTO> uploadProfilePhoto(Long dependentId, MultipartFile photo) {
         
         Dependent dependent = dependentRepo.findById(dependentId)
-                .orElseThrow(() -> new NotFoundException("Dependent not found"));
+            .orElseThrow(() -> new NotFoundException("Dependiente no encontrado"));
 
         User currentUser = userService.getCurrentUser();
         if (!dependent.getPatient().getUser().getId().equals(currentUser.getId())) {
-            throw new BadRequestException("You can only upload photos for your own dependents");
+            throw new BadRequestException("Solo puedes subir fotos para tus propios dependientes");
         }
 
         try {
@@ -158,18 +158,18 @@ public class DependentServiceImpl implements DependentService {
 
             // Validate file
             if (photo.isEmpty()) {
-                throw new BadRequestException("Photo file is empty");
+                throw new BadRequestException("El archivo de la foto está vacío");
             }
 
             // Validate file size (5MB max for photos)
             if (photo.getSize() > 5 * 1024 * 1024) {
-                throw new BadRequestException("Photo exceeds maximum size of 5MB");
+                throw new BadRequestException("La foto excede el tamaño máximo de 5MB");
             }
 
             // Validate file type
             String contentType = photo.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
-                throw new BadRequestException("File must be an image (JPG, PNG, GIF)");
+                throw new BadRequestException("El archivo debe ser una imagen (JPG, PNG, GIF)");
             }
 
             // Generate unique filename
@@ -202,15 +202,15 @@ public class DependentServiceImpl implements DependentService {
 
             DependentDTO responseDTO = modelMapper.map(savedDependent, DependentDTO.class);
 
-            return Response.<DependentDTO>builder()
+                return Response.<DependentDTO>builder()
                     .statusCode(200)
-                    .message("Profile photo uploaded successfully")
+                    .message("Foto de perfil subida correctamente")
                     .data(responseDTO)
                     .build();
 
         } catch (IOException e) {
-            log.error("Error uploading photo: ", e);
-            throw new BadRequestException("Failed to upload photo: " + e.getMessage());
+            log.error("Error al subir la foto: ", e);
+            throw new BadRequestException("Error al subir la foto: " + e.getMessage());
         }
     }
 
@@ -233,7 +233,7 @@ public class DependentServiceImpl implements DependentService {
 
         return Response.<List<DependentDTO>>builder()
                 .statusCode(200)
-                .message("All dependents retrieved successfully")
+                .message("Dependientes obtenidos correctamente")
                 .data(dependentDTOs)
                 .build();
     }
@@ -255,7 +255,7 @@ public class DependentServiceImpl implements DependentService {
         int nextNumber = sequence.getLastNumber() + 1;
         
         if (nextNumber > 99999) {
-            throw new BadRequestException("Expediente limit reached (99999)");
+            throw new BadRequestException("Se alcanzó el límite de expedientes (99999)");
         }
 
         String expedienteNumber = String.format("%05d", nextNumber);

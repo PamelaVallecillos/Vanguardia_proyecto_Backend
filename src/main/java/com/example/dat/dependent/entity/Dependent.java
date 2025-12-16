@@ -3,6 +3,7 @@ package com.example.dat.dependent.entity;
 import com.example.dat.appointment.entity.Appointment;
 import com.example.dat.enums.BloodGroup;
 import com.example.dat.enums.Genotype;
+import com.example.dat.enums.converter.BloodGroupConverter;
 import com.example.dat.patient.entity.Patient;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -45,7 +46,7 @@ public class Dependent {
     @Lob
     private String knownAllergies;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = BloodGroupConverter.class)
     private BloodGroup bloodGroup;
 
     @Enumerated(EnumType.STRING)
