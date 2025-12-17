@@ -3,7 +3,6 @@ package com.example.dat.enums;
 public enum Specialization {
 
     // Medicina Interna y Subespecialidades
-    MEDICINA_GENERAL,
     MEDICINA_INTERNA,
     CARDIOLOGIA,
     NEUMOLOGIA,

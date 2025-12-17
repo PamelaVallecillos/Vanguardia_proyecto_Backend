@@ -1,18 +1,31 @@
 package com.example.dat.dependent.entity;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import com.example.dat.appointment.entity.Appointment;
 import com.example.dat.enums.BloodGroup;
 import com.example.dat.enums.Genotype;
-import com.example.dat.enums.converter.BloodGroupConverter;
 import com.example.dat.patient.entity.Patient;
-import jakarta.persistence.*;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Data
@@ -46,7 +59,7 @@ public class Dependent {
     @Lob
     private String knownAllergies;
 
-    @Convert(converter = BloodGroupConverter.class)
+    @Enumerated(EnumType.STRING)
     private BloodGroup bloodGroup;
 
     @Enumerated(EnumType.STRING)
@@ -61,3 +74,4 @@ public class Dependent {
     @OneToMany(mappedBy = "dependent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Appointment> appointments;
 }
+

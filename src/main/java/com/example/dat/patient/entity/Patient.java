@@ -43,7 +43,7 @@ public class Patient {
     @Lob // Stores allergies as a comma-separated string
     private String knownAllergies;
 
-    @Convert(converter = com.example.dat.enums.converter.BloodGroupConverter.class)
+    @Enumerated(EnumType.STRING)
     private BloodGroup bloodGroup;
 
     @Enumerated(EnumType.STRING)
